@@ -43,30 +43,6 @@ func (client *RibbitClient) Summary() ([]SummaryItem, error) {
 	return result, nil
 }
 
-func (client *RibbitClient) process(call string) (string, error) {
-	ribbitClient, err := net.Dial("tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
-	if err != nil {
-		return "", err
-	}
-	defer ribbitClient.Close()
-
-	fmt.Fprintf(ribbitClient, fmt.Sprintf("v1/%s\r\n", call))
-
-	data, err := ioutil.ReadAll(ribbitClient)
-	if err != nil {
-		return "", err
-	}
-
-	content := string(data)
-	r := strings.NewReader(content)
-	env, err := enmime.ReadEnvelope(r)
-	if err != nil {
-		return "", err
-	}
-
-	return string(env.Root.FirstChild.Content), nil
-}
-
 func (client *RibbitClient) Versions(game string) ([]RegionItem, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/versions", game))
 	if err != nil {
@@ -89,6 +65,30 @@ func (client *RibbitClient) BGDL(game string) ([]RegionItem, error) {
 	mapstructure.Decode(parseFile(data), &result)
 
 	return result, nil
+}
+
+func (client *RibbitClient) process(call string) (string, error) {
+	ribbitClient, err := net.Dial("tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
+	if err != nil {
+		return "", err
+	}
+	defer ribbitClient.Close()
+
+	fmt.Fprintf(ribbitClient, fmt.Sprintf("v1/%s\r\n", call))
+
+	data, err := ioutil.ReadAll(ribbitClient)
+	if err != nil {
+		return "", err
+	}
+
+	content := string(data)
+	r := strings.NewReader(content)
+	env, err := enmime.ReadEnvelope(r)
+	if err != nil {
+		return "", err
+	}
+
+	return string(env.Root.FirstChild.Content), nil
 }
 
 func (item SummaryItem) Versions() ([]RegionItem, error) {
