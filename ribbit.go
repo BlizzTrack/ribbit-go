@@ -67,6 +67,30 @@ func (client *RibbitClient) process(call string) (string, error) {
 	return string(env.Root.FirstChild.Content), nil
 }
 
+func (client *RibbitClient) Versions(game string) ([]RegionItem, error) {
+	data, err := client.process(fmt.Sprintf("products/%s/versions", game))
+	if err != nil {
+		return nil, err
+	}
+
+	var result []RegionItem
+	mapstructure.Decode(parseFile(data), &result)
+
+	return result, nil
+}
+
+func (client *RibbitClient) BGDL(game string) ([]RegionItem, error) {
+	data, err := client.process(fmt.Sprintf("products/%s/bgdl", game))
+	if err != nil {
+		return nil, err
+	}
+
+	var result []RegionItem
+	mapstructure.Decode(parseFile(data), &result)
+
+	return result, nil
+}
+
 func (item SummaryItem) Versions() ([]RegionItem, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/versions", item.Product))
 	if err != nil {
