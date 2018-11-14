@@ -1,6 +1,7 @@
 package ribbit
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -86,6 +87,10 @@ func (client *RibbitClient) process(call string) (string, error) {
 	env, err := enmime.ReadEnvelope(r)
 	if err != nil {
 		return "", err
+	}
+
+	if env.Root == nil || env.Root.FirstChild == nil {
+		return "", errors.New("root or firstchild of root is empty")
 	}
 
 	return string(env.Root.FirstChild.Content), nil
