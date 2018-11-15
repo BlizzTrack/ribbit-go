@@ -18,12 +18,12 @@ type (
 	}
 
 	CdnItem struct {
-		Name        string `json:",omitempty"`
+		Name        string `json:"-,omitempty"`
 		Region      string
 		Path        string
-		Hosts       string `json:",omitempty"`
+		Hosts       string `json:"-,omitempty"`
 		HostsList   []string
-		Servers     string `json:",omitempty"`
+		Servers     string `json:"-,omitempty"`
 		ServersList []string
 		ConfigPath  string
 	}

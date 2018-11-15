@@ -57,11 +57,6 @@ func (client *RibbitClient) CDNS(game string) ([]CdnItem, error) {
 		result[i].HostsList = strings.Split(result[i].Hosts, " ")
 		result[i].ServersList = strings.Split(result[i].Servers, " ")
 		result[i].Region = result[i].Name
-
-		result[i].Hosts = ""
-		result[i].Servers = ""
-		result[i].Name = ""
-
 	}
 
 	return result, nil
