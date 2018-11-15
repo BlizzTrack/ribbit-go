@@ -44,6 +44,29 @@ func (client *RibbitClient) Summary() ([]SummaryItem, error) {
 	return result, nil
 }
 
+func (client *RibbitClient) CDNS(game string) ([]CdnItem, error) {
+	data, err := client.process(fmt.Sprintf("products/%s/cdns", game))
+	if err != nil {
+		return nil, err
+	}
+
+	var result []CdnItem
+	mapstructure.Decode(parseFile(data), &result)
+
+	for i := 0; i < len(result); i++ {
+		result[i].HostsList = strings.Split(result[i].Hosts, " ")
+		result[i].ServersList = strings.Split(result[i].Servers, " ")
+		result[i].Region = result[i].Name
+
+		result[i].Hosts = ""
+		result[i].Servers = ""
+		result[i].Name = ""
+
+	}
+
+	return result, nil
+}
+
 func (client *RibbitClient) Versions(game string) ([]RegionItem, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/versions", game))
 	if err != nil {
@@ -97,27 +120,15 @@ func (client *RibbitClient) process(call string) (string, error) {
 }
 
 func (item SummaryItem) Versions() ([]RegionItem, error) {
-	data, err := client.process(fmt.Sprintf("products/%s/versions", item.Product))
-	if err != nil {
-		return nil, err
-	}
-
-	var result []RegionItem
-	mapstructure.Decode(parseFile(data), &result)
-
-	return result, nil
+	return client.Versions(item.Product)
 }
 
 func (item SummaryItem) BGDL() ([]RegionItem, error) {
-	data, err := client.process(fmt.Sprintf("products/%s/bgdl", item.Product))
-	if err != nil {
-		return nil, err
-	}
+	return client.BGDL(item.Product)
+}
 
-	var result []RegionItem
-	mapstructure.Decode(parseFile(data), &result)
-
-	return result, nil
+func (item SummaryItem) CDNS() ([]CdnItem, error) {
+	return client.CDNS(item.Product)
 }
 
 // parser for version files... This will have to be changed to handle arrays in later build
