@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/jhillyerd/enmime"
 	"github.com/mitchellh/mapstructure"
@@ -18,6 +19,7 @@ type RibbitClient struct {
 }
 
 var client *RibbitClient
+var timeout time.Duration
 
 func NewRibbitClient(reg string) *RibbitClient {
 	var region string
@@ -28,8 +30,13 @@ func NewRibbitClient(reg string) *RibbitClient {
 	}
 
 	client = &RibbitClient{region}
+	timeout = 5 * time.Second
 
 	return client
+}
+
+func SetTimeout(out time.Duration) {
+	timeout = out
 }
 
 func (client *RibbitClient) Summary() ([]SummaryItem, error) {
@@ -87,7 +94,7 @@ func (client *RibbitClient) BGDL(game string) ([]RegionItem, error) {
 }
 
 func (client *RibbitClient) process(call string) (string, error) {
-	ribbitClient, err := net.Dial("tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
+	ribbitClient, err := net.DialTimeout("tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region), timeout)
 	if err != nil {
 		return "", err
 	}
