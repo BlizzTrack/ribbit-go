@@ -1,6 +1,7 @@
 package ribbit
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -19,7 +20,7 @@ type RibbitClient struct {
 }
 
 var client *RibbitClient
-var timeout time.Duration
+var d net.Dialer
 
 func NewRibbitClient(reg string) *RibbitClient {
 	var region string
@@ -30,13 +31,12 @@ func NewRibbitClient(reg string) *RibbitClient {
 	}
 
 	client = &RibbitClient{region}
-	timeout = 5 * time.Second
-
+	d = net.Dialer{Timeout: 5 * time.Second, DualStack: true}
 	return client
 }
 
 func SetTimeout(out time.Duration) {
-	timeout = out
+	d.Timeout = out
 }
 
 func (client *RibbitClient) Summary() ([]SummaryItem, error) {
@@ -94,7 +94,10 @@ func (client *RibbitClient) BGDL(game string) ([]RegionItem, error) {
 }
 
 func (client *RibbitClient) process(call string) (string, error) {
-	ribbitClient, err := net.DialTimeout("tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), d.Timeout)
+	defer cancel()
+
+	ribbitClient, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
 	if err != nil {
 		return "", err
 	}
