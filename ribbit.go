@@ -51,10 +51,10 @@ func (client *RibbitClient) Summary() ([]SummaryItem, error) {
 	return result, nil
 }
 
-func (client *RibbitClient) CDNS(game string) ([]CdnItem, error) {
+func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/cdns", game))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var result []CdnItem
@@ -66,31 +66,31 @@ func (client *RibbitClient) CDNS(game string) ([]CdnItem, error) {
 		result[i].Region = result[i].Name
 	}
 
-	return result, nil
+	return result, getSeqn(data), nil
 }
 
-func (client *RibbitClient) Versions(game string) ([]RegionItem, error) {
+func (client *RibbitClient) Versions(game string) ([]RegionItem, string, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/versions", game))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var result []RegionItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, nil
+	return result, getSeqn(data), nil
 }
 
-func (client *RibbitClient) BGDL(game string) ([]RegionItem, error) {
+func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/bgdl", game))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var result []RegionItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, nil
+	return result, getSeqn(data), nil
 }
 
 func (client *RibbitClient) process(call string) (string, error) {
@@ -124,15 +124,15 @@ func (client *RibbitClient) process(call string) (string, error) {
 	return string(env.Root.FirstChild.Content), nil
 }
 
-func (item SummaryItem) Versions() ([]RegionItem, error) {
+func (item SummaryItem) Versions() ([]RegionItem, string, error) {
 	return client.Versions(item.Product)
 }
 
-func (item SummaryItem) BGDL() ([]RegionItem, error) {
+func (item SummaryItem) BGDL() ([]RegionItem, string, error) {
 	return client.BGDL(item.Product)
 }
 
-func (item SummaryItem) CDNS() ([]CdnItem, error) {
+func (item SummaryItem) CDNS() ([]CdnItem, string, error) {
 	return client.CDNS(item.Product)
 }
 
@@ -168,4 +168,19 @@ func parseFile(file string) []map[string]string {
 	}
 
 	return data
+}
+
+func getSeqn(file string) string {
+	lines := strings.Split(file, "\n")
+	for i := 1; i < len(lines); i++ {
+		if len(strings.TrimSpace(lines[i])) > 0 {
+			if strings.Contains(lines[i], "## seqn") {
+				line := strings.Replace(lines[i], " ", "", -1)
+				items := strings.Split(line, "=")
+				return items[len(items)-1]
+			}
+		}
+	}
+
+	return ""
 }
