@@ -94,7 +94,7 @@ func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, error) {
 }
 
 func (client *RibbitClient) process(call string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), d.Timeout)
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(d.Timeout*time.Second))
 	defer cancel()
 
 	ribbitClient, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
