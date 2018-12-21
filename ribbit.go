@@ -120,7 +120,10 @@ func (client *RibbitClient) process(call string) (string, error) {
 		return "", err
 	}
 
-	fmt.Fprintf(ribbitClient, fmt.Sprintf("v1/%s\r\n", call))
+	_, err = fmt.Fprintf(ribbitClient, fmt.Sprintf("v1/%s\r\n", call))
+	if err != nil {
+		return "", err
+	}
 
 	data, err := ioutil.ReadAll(ribbitClient)
 	if err != nil {
