@@ -21,6 +21,7 @@ type RibbitClient struct {
 
 var client *RibbitClient
 var d net.Dialer
+var timeout time.Duration
 
 func NewRibbitClient(reg string) *RibbitClient {
 	var region string
@@ -36,7 +37,7 @@ func NewRibbitClient(reg string) *RibbitClient {
 }
 
 func SetTimeout(out time.Duration) {
-	d.Timeout = out
+	timeout = out
 }
 
 func (client *RibbitClient) Summary() ([]SummaryItem, error) {
@@ -94,7 +95,10 @@ func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, error) {
 }
 
 func (client *RibbitClient) process(call string) (string, error) {
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(d.Timeout*time.Second))
+	d.Timeout = timeout
+	d.Deadline = time.Now().Add(timeout)
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(timeout))
 	defer cancel()
 
 	ribbitClient, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
