@@ -107,6 +107,19 @@ func (client *RibbitClient) process(call string) (string, error) {
 	}
 	defer ribbitClient.Close()
 
+	err = ribbitClient.SetDeadline(time.Now().Add(timeout))
+	if err != nil {
+		return "", err
+	}
+	err = ribbitClient.SetReadDeadline(time.Now().Add(timeout))
+	if err != nil {
+		return "", err
+	}
+	err = ribbitClient.SetWriteDeadline(time.Now().Add(timeout))
+	if err != nil {
+		return "", err
+	}
+
 	fmt.Fprintf(ribbitClient, fmt.Sprintf("v1/%s\r\n", call))
 
 	data, err := ioutil.ReadAll(ribbitClient)
