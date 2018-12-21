@@ -2,29 +2,29 @@ package ribbit
 
 type (
 	SummaryItem struct {
-		Product string
-		Seqn    string
-		Flags   string
+		Product string `json:"product"`
+		Seqn    string `json:"seqn"`
+		Flags   string `json:"flags"`
 	}
 
 	RegionItem struct {
-		Buildconfig   string
-		Buildid       string
-		Cdnconfig     string
-		Keyring       string
-		Region        string
-		Versionsname  string
-		Productconfig string
+		Buildconfig   string `json:"build_config"`
+		Buildid       string `json:"build_id"`
+		Cdnconfig     string `json:"cdn_config"`
+		Keyring       string `json:"keyring,omitempty"`
+		Region        string `json:"region"`
+		Versionsname  string `json:"version_name"`
+		Productconfig string `json:"product_config,omitempty"`
 	}
 
 	CdnItem struct {
-		Name        string `json:"-,omitempty"`
-		Region      string
-		Path        string
-		Hosts       string `json:"-,omitempty"`
-		HostsList   []string
-		Servers     string `json:"-,omitempty"`
-		ServersList []string
-		ConfigPath  string
+		Name        string   `json:"-"`
+		Region      string   `json:"region"`
+		Path        string   `json:"path"`
+		Hosts       string   `json:"-"`
+		HostsList   []string `json:"hosts_lsit"`
+		Servers     string   `json:"-"`
+		ServersList []string `json:"servers_lists"`
+		ConfigPath  string   `json:"config_path"`
 	}
 )
