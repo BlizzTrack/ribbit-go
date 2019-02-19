@@ -22,7 +22,7 @@ type (
 		Region      string   `json:"region"`
 		Path        string   `json:"path"`
 		Hosts       string   `json:"-"`
-		HostsList   []string `json:"hosts_lsit"`
+		HostsList   []string `json:"hosts_list"`
 		Servers     string   `json:"-"`
 		ServersList []string `json:"servers_lists"`
 		ConfigPath  string   `json:"config_path"`
