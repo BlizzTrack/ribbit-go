@@ -40,22 +40,22 @@ func SetTimeout(out time.Duration) {
 	timeout = out
 }
 
-func (client *RibbitClient) Summary() ([]SummaryItem, error) {
+func (client *RibbitClient) Summary() ([]SummaryItem, string, error) {
 	data, err := client.process("summary")
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var result []SummaryItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, nil
+	return result, data, nil
 }
 
-func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, error) {
+func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, string, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/cdns", game))
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	var result []CdnItem
@@ -67,31 +67,31 @@ func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, error) {
 		result[i].Region = result[i].Name
 	}
 
-	return result, getSeqn(data), nil
+	return result, getSeqn(data), data, nil
 }
 
-func (client *RibbitClient) Versions(game string) ([]RegionItem, string, error) {
+func (client *RibbitClient) Versions(game string) ([]RegionItem, string, string, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/versions", game))
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	var result []RegionItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, getSeqn(data), nil
+	return result, getSeqn(data), data, nil
 }
 
-func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, error) {
+func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, string, error) {
 	data, err := client.process(fmt.Sprintf("products/%s/bgdl", game))
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	var result []RegionItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, getSeqn(data), nil
+	return result, getSeqn(data), data, nil
 }
 
 func (client *RibbitClient) process(call string) (string, error) {
@@ -144,15 +144,15 @@ func (client *RibbitClient) process(call string) (string, error) {
 	return string(env.Root.FirstChild.Content), nil
 }
 
-func (item SummaryItem) Versions() ([]RegionItem, string, error) {
+func (item SummaryItem) Versions() ([]RegionItem, string, string, error) {
 	return client.Versions(item.Product)
 }
 
-func (item SummaryItem) BGDL() ([]RegionItem, string, error) {
+func (item SummaryItem) BGDL() ([]RegionItem, string, string, error) {
 	return client.BGDL(item.Product)
 }
 
-func (item SummaryItem) CDNS() ([]CdnItem, string, error) {
+func (item SummaryItem) CDNS() ([]CdnItem, string, string, error) {
 	return client.CDNS(item.Product)
 }
 
