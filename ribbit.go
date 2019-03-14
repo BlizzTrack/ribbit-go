@@ -41,7 +41,7 @@ func SetTimeout(out time.Duration) {
 }
 
 func (client *RibbitClient) Summary() ([]SummaryItem, string, error) {
-	data, err := client.process("summary")
+	data, raw, err := client.process("summary")
 	if err != nil {
 		return nil, "", err
 	}
@@ -49,11 +49,11 @@ func (client *RibbitClient) Summary() ([]SummaryItem, string, error) {
 	var result []SummaryItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, data, nil
+	return result, raw, nil
 }
 
 func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, string, error) {
-	data, err := client.process(fmt.Sprintf("products/%s/cdns", game))
+	data, raw, err := client.process(fmt.Sprintf("products/%s/cdns", game))
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -67,11 +67,11 @@ func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, string, error)
 		result[i].Region = result[i].Name
 	}
 
-	return result, getSeqn(data), data, nil
+	return result, getSeqn(data), raw, nil
 }
 
 func (client *RibbitClient) Versions(game string) ([]RegionItem, string, string, error) {
-	data, err := client.process(fmt.Sprintf("products/%s/versions", game))
+	data, raw, err := client.process(fmt.Sprintf("products/%s/versions", game))
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -79,11 +79,11 @@ func (client *RibbitClient) Versions(game string) ([]RegionItem, string, string,
 	var result []RegionItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, getSeqn(data), data, nil
+	return result, getSeqn(data), raw, nil
 }
 
 func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, string, error) {
-	data, err := client.process(fmt.Sprintf("products/%s/bgdl", game))
+	data, raw, err := client.process(fmt.Sprintf("products/%s/bgdl", game))
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -91,10 +91,10 @@ func (client *RibbitClient) BGDL(game string) ([]RegionItem, string, string, err
 	var result []RegionItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, getSeqn(data), data, nil
+	return result, getSeqn(data), raw, nil
 }
 
-func (client *RibbitClient) process(call string) (string, error) {
+func (client *RibbitClient) process(call string) (string, string, error) {
 	d.Timeout = timeout
 	d.Deadline = time.Now().Add(timeout)
 
@@ -103,45 +103,45 @@ func (client *RibbitClient) process(call string) (string, error) {
 
 	ribbitClient, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer ribbitClient.Close()
 
 	err = ribbitClient.SetDeadline(time.Now().Add(timeout))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	err = ribbitClient.SetReadDeadline(time.Now().Add(timeout))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	err = ribbitClient.SetWriteDeadline(time.Now().Add(timeout))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	_, err = fmt.Fprintf(ribbitClient, fmt.Sprintf("v1/%s\r\n", call))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	data, err := ioutil.ReadAll(ribbitClient)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	content := string(data)
 	r := strings.NewReader(content)
 	env, err := enmime.ReadEnvelope(r)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if env.Root == nil || env.Root.FirstChild == nil {
-		return "", errors.New("root or firstchild of root is empty")
+		return "", "", errors.New("root or firstchild of root is empty")
 	}
 
-	return string(env.Root.FirstChild.Content), nil
+	return string(env.Root.FirstChild.Content), content, nil
 }
 
 func (item SummaryItem) Versions() ([]RegionItem, string, string, error) {
