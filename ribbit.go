@@ -40,16 +40,16 @@ func SetTimeout(out time.Duration) {
 	timeout = out
 }
 
-func (client *RibbitClient) Summary() ([]SummaryItem, string, error) {
+func (client *RibbitClient) Summary() ([]SummaryItem, string, string, error) {
 	data, raw, err := client.process("summary")
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	var result []SummaryItem
 	mapstructure.Decode(parseFile(data), &result)
 
-	return result, raw, nil
+	return result, getSeqn(data), raw, nil
 }
 
 func (client *RibbitClient) CDNS(game string) ([]CdnItem, string, string, error) {
