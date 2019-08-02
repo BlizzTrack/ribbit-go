@@ -17,13 +17,14 @@ import (
 
 type RibbitClient struct {
 	Region string
+	Proxy  string
 }
 
 var client *RibbitClient
 var d net.Dialer
 var timeout time.Duration
 
-func NewRibbitClient(reg string) *RibbitClient {
+func NewRibbitClient(reg, proxy string) *RibbitClient {
 	var region string
 	if len(reg) <= 0 {
 		region = "us"
@@ -31,7 +32,7 @@ func NewRibbitClient(reg string) *RibbitClient {
 		region = reg
 	}
 
-	client = &RibbitClient{region}
+	client = &RibbitClient{region, proxy}
 	d = net.Dialer{Timeout: 5 * time.Second, DualStack: true}
 	return client
 }
@@ -101,7 +102,12 @@ func (client *RibbitClient) process(call string) (string, string, error) {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(timeout))
 	defer cancel()
 
-	ribbitClient, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s.version.battle.net:1119", client.Region))
+	server := fmt.Sprintf("%s.version.battle.net:1119", client.Region)
+	if client.Proxy != "" {
+		server = client.Proxy
+	}
+
+	ribbitClient, err := d.DialContext(ctx, "tcp", server)
 	if err != nil {
 		return "", "", err
 	}
