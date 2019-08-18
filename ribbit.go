@@ -24,7 +24,7 @@ var client *RibbitClient
 var d net.Dialer
 var timeout time.Duration
 
-func NewRibbitClient(reg  string) *RibbitClient {
+func NewRibbitClient(reg string) *RibbitClient {
 	var region string
 	if len(reg) <= 0 {
 		region = "us"
@@ -33,6 +33,12 @@ func NewRibbitClient(reg  string) *RibbitClient {
 	}
 
 	client = &RibbitClient{region, ""}
+	d = net.Dialer{Timeout: 5 * time.Second, DualStack: true}
+	return client
+}
+
+func NewRibbitClientProxy(server string) *RibbitClient {
+	client = &RibbitClient{"", server}
 	d = net.Dialer{Timeout: 5 * time.Second, DualStack: true}
 	return client
 }
